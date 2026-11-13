@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="CineGallery.Application/CineGallery.Application.csproj" />
+  <Project Path="CineGallery.Domain/CineGallery.Domain.csproj" />
+  <Project Path="CineGallery.Infrastructure/CineGallery.Infrastructure.csproj" />
+  <Project Path="CineGallery/CineGallery.WebAPI.csproj" />
+</Solution>
