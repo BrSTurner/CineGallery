@@ -52,13 +52,13 @@ namespace CineGallery.Infrastructure.Caching
             }
         }
 
-        public async Task InvalidateAsync(CancellationToken ct)
+        public async Task InvalidateAsync(CancellationToken cancellationToken)
         {
             try
             {
-                await cache.RemoveAsync(CacheKey, ct);
+                await cache.RemoveAsync(CacheKey, cancellationToken);
             }
-            catch (Exception ex) when (!ct.IsCancellationRequested)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 logger.LogWarning(ex, "Redis invalidation failed");
             }
