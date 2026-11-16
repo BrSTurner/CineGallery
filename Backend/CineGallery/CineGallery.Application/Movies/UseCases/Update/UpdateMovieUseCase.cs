@@ -1,12 +1,18 @@
 ﻿using CineGallery.Application.Common;
+using CineGallery.Application.Movies.Events;
 using CineGallery.Application.Movies.Models;
 using CineGallery.Application.Movies.Repositories;
+using CineGallery.Domain.Movies.Entities;
 using FluentValidation;
+using MediatR;
 using System.Data;
 
 namespace CineGallery.Application.Movies.UseCases.Update
 {
-    public sealed class UpdateMovieUseCase(IMovieRepository repository, IValidator<MovieInput> validator)
+    public sealed class UpdateMovieUseCase(
+        IMovieRepository repository, 
+        IPublisher publisher, 
+        IValidator<MovieInput> validator)
     {
         public async Task<Result<MovieOutput>> ExecuteAsync(MovieInput input, CancellationToken cancellationToken)
         {
@@ -37,6 +43,8 @@ namespace CineGallery.Application.Movies.UseCases.Update
                 return Result<MovieOutput>.Failure(["Something went wrong updating the movie"]);
             }
 
+            await PublishMovieChangedEventAsync(movieToUpdate, cancellationToken);
+
             return Result<MovieOutput>.Success(new MovieOutput
             {
                 Id = movieToUpdate.Id,
@@ -45,5 +53,8 @@ namespace CineGallery.Application.Movies.UseCases.Update
             });
             
         }
+
+        private async Task PublishMovieChangedEventAsync(Movie movie, CancellationToken cancellationToken)
+            => await publisher.Publish(new MovieChangedEvent(movie.Id), cancellationToken);
     }
 }

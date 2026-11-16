@@ -1,8 +1,10 @@
 ﻿using CineGallery.Application.Common;
+using CineGallery.Application.Movies.Events;
 using CineGallery.Application.Movies.Models;
 using CineGallery.Application.Movies.Repositories;
 using CineGallery.Domain.Movies.Entities;
 using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
@@ -10,7 +12,8 @@ namespace CineGallery.Application.Movies.UseCases.Create
 {
     public sealed class CreateMovieUseCase(
         IMovieRepository repository, 
-        IValidator<MovieInput> validator, 
+        IValidator<MovieInput> validator,
+        IPublisher publisher,
         ILogger<CreateMovieUseCase> logger)
     {
         private Activity? MovieActivity { get; set; }
@@ -32,7 +35,9 @@ namespace CineGallery.Application.Movies.UseCases.Create
                 var result = await repository.SaveChangesAsync(cancellationToken);
 
                 if (!result.IsSuccess) return Result<MovieOutput>.Failure([$"Error creating the movie {input.Name}"]);
-              
+
+                await PublishMovieChangedEventAsync(movie, cancellationToken);
+
                 RegisterActivity(movie.Id);
 
                 return Result<MovieOutput>.Success(new MovieOutput
@@ -50,5 +55,8 @@ namespace CineGallery.Application.Movies.UseCases.Create
             MovieTelemetry.MoviesCreated.Add(1);
             logger.LogInformation("Movie created successfully. Id: {MovieId}", id);
         }
+
+        private async Task PublishMovieChangedEventAsync(Movie movie, CancellationToken cancellationToken) 
+            => await publisher.Publish(new MovieChangedEvent(movie.Id), cancellationToken);        
     }
 }

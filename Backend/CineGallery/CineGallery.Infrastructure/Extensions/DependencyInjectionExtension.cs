@@ -1,4 +1,6 @@
-﻿using CineGallery.Application.Movies.Repositories;
+﻿using CineGallery.Application.Movies.Caching;
+using CineGallery.Application.Movies.Repositories;
+using CineGallery.Infrastructure.Caching;
 using CineGallery.Infrastructure.Context;
 using CineGallery.Infrastructure.Interceptors;
 using CineGallery.Infrastructure.Movies.Mapping;
@@ -25,6 +27,15 @@ namespace CineGallery.Infrastructure.Extensions
                     .AddInterceptors(sp.GetRequiredService<SlowQueryInterceptor>());
             });
 
+            var redisConnection = configuration.GetConnectionString("Redis");
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConnection;
+                options.InstanceName = "CineGallery:";
+            });
+
+            services.AddScoped<IMovieListCache, RedisMovieListCache>();
             services.AddScoped<SlowQueryInterceptor>();
             services.AddScoped<IMovieRepository, MovieRepository>();
 

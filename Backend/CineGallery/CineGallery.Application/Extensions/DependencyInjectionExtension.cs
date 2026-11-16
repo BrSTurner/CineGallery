@@ -1,4 +1,5 @@
-﻿using CineGallery.Application.Movies.Models;
+﻿using CineGallery.Application.Movies.Events;
+using CineGallery.Application.Movies.Models;
 using CineGallery.Application.Movies.UseCases.Create;
 using CineGallery.Application.Movies.UseCases.Delete;
 using CineGallery.Application.Movies.UseCases.GetAll;
@@ -22,6 +23,8 @@ namespace CineGallery.Application.Extensions
 
             services.AddScoped<IValidator<MovieInput>, MovieValidator>();
             services.AddScoped<IValidator<DeleteMovieCommand>, DeleteMovieValidator>();
+
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(MovieChangedEvent).Assembly));
 
             return services;
         }
