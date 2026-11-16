@@ -14,26 +14,18 @@ namespace CineGallery.Infrastructure.Movies.Repositories
         public async Task AddAsync(Movie movie, CancellationToken cancellationToken) => await _movies.AddAsync(movie, cancellationToken);      
         public Task<List<Movie>> GetAllAsync(CancellationToken cancellationToken) => _movies.AsNoTracking().ToListAsync(cancellationToken);
         public async Task<Movie?> GetByIdAndRowVersionAsync(Guid id, byte[] rowVersion, CancellationToken cancellationToken) => await _movies.FirstOrDefaultAsync(x => x.Id == id && x.RowVersion.SequenceEqual(rowVersion), cancellationToken);
-        public async Task<Movie?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => await _movies.FindAsync(id, cancellationToken);
-        public async Task<Movie?> GetByIdAsNoTrackingAsync(Guid id, CancellationToken cancellationToken) => await _movies.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        public async Task<Movie?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => await _movies.FindAsync(keyValues: [id], cancellationToken: cancellationToken);
+        public async Task<Movie?> GetByIdAsNoTrackingAsync(Guid id, CancellationToken cancellationToken) => await _movies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         
-        public Task<List<Movie>> GetByNameAsync(string name, CancellationToken cancellationToken)
-        {
-            var normalizedName = name.ToLower();
+        public Task<List<Movie>> GetByNameAsync(string name, CancellationToken cancellationToken) => _movies
+            .AsNoTracking()
+            .Where(x => x.Name == name)
+            .ToListAsync(cancellationToken);
 
-            return _movies
-                .AsNoTracking()
-                .Where(x => x.Name.ToLower() == normalizedName)
-                .ToListAsync(cancellationToken);
-        }
-
-        public async Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken) 
-        {
-            var normalizedName = name.ToLower();
-
-            return await _movies.AnyAsync(x => x.Name.ToLower() == normalizedName, cancellationToken);
-        }
-
+        public async Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken) => await _movies.AnyAsync(x => x.Name == name, cancellationToken);
+        
         public void Delete(Movie movie) 
         {
             SetRowVersionToCompare(movie, movie.RowVersion);

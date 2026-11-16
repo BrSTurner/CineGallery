@@ -7,6 +7,8 @@ namespace CineGallery.Application.Movies.UseCases.GetAll
     {
         public async Task<List<MovieOutput>> ExecuteAsync(CancellationToken cancellationToken)
         {
+            //TODO: Implement cache
+
             var movies = await repository.GetAllAsync(cancellationToken);
 
             return [.. movies.Select(x => new MovieOutput

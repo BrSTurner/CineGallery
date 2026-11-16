@@ -16,6 +16,8 @@ builder.Services.AddApiVersioning(options =>
     options.ApiVersionReader = new UrlSegmentApiVersionReader();
 });
 
+//TODO: Implement Microsoft Entra OpenId + OAuth2.0
+
 builder.Services.AddHealthChecks();
 builder.Services.AddObservability();
 builder.Services.AddApplication();
