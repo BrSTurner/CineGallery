@@ -3,16 +3,17 @@ using CineGallery.Application.Movies.Repositories;
 
 namespace CineGallery.Application.Movies.UseCases.GetAll
 {
-    public class GetAllMoviesUseCase(IMovieRepository repository)
+    public sealed class GetAllMoviesUseCase(IMovieRepository repository)
     {
-        public async Task<List<MovieDTO>> Execute(CancellationToken ct)
+        public async Task<List<MovieOutput>> ExecuteAsync(CancellationToken cancellationToken)
         {
-            var movies = await repository.GetAllAsync(ct);
+            var movies = await repository.GetAllAsync(cancellationToken);
 
-            return [.. movies.Select(x => new MovieDTO
+            return [.. movies.Select(x => new MovieOutput
             {
                 Id = x.Id,
-                Name = x.Name
+                Name = x.Name,
+                RowVersion = Convert.ToBase64String(x.RowVersion)
             })];
         }
     }

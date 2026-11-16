@@ -17,7 +17,7 @@ namespace CineGallery.Infrastructure.Extensions
             services.AddDbContext<CineGalleryContext>((sp, options) =>
             {
                 options
-                    .UseSqlite(configuration.GetConnectionString("DefaultConnection"))
+                    .UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
                     .UseSeeding((context, _) =>
                     {
                         MovieSeed.Seed(context);

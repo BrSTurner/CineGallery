@@ -17,6 +17,10 @@ namespace CineGallery.Infrastructure.Movies.Mapping
                 .IsRequired();
 
             builder.HasIndex(x => x.Name);
+
+            builder
+                .Property(x => x.RowVersion)               
+                .IsRowVersion();
         }
     }
 }

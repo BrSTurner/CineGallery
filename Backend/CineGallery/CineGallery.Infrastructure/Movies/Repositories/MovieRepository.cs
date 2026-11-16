@@ -3,9 +3,7 @@ using CineGallery.Application.Movies.Repositories;
 using CineGallery.Domain.Movies.Entities;
 using CineGallery.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Data;
 
 namespace CineGallery.Infrastructure.Movies.Repositories
 {
@@ -13,25 +11,54 @@ namespace CineGallery.Infrastructure.Movies.Repositories
     {
         private readonly DbSet<Movie> _movies = context.Movies;
 
-        public async Task AddAsync(Movie movie, CancellationToken ct) => await _movies.AddAsync(movie, ct);
+        public async Task AddAsync(Movie movie, CancellationToken cancellationToken) => await _movies.AddAsync(movie, cancellationToken);      
+        public Task<List<Movie>> GetAllAsync(CancellationToken cancellationToken) => _movies.AsNoTracking().ToListAsync(cancellationToken);
+        public async Task<Movie?> GetByIdAndRowVersionAsync(Guid id, byte[] rowVersion, CancellationToken cancellationToken) => await _movies.FirstOrDefaultAsync(x => x.Id == id && x.RowVersion.SequenceEqual(rowVersion), cancellationToken);
+        public async Task<Movie?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => await _movies.FindAsync(id, cancellationToken);
+        public async Task<Movie?> GetByIdAsNoTrackingAsync(Guid id, CancellationToken cancellationToken) => await _movies.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         
-        public async Task<List<Movie>> GetAllAsync(CancellationToken ct) => await _movies.AsNoTracking().ToListAsync(ct);
+        public Task<List<Movie>> GetByNameAsync(string name, CancellationToken cancellationToken)
+        {
+            var normalizedName = name.ToLower();
 
-        public async Task<Movie?> GetByIdAsync(Guid id, CancellationToken ct) => await _movies.FindAsync(keyValues: [id], cancellationToken: ct);
+            return _movies
+                .AsNoTracking()
+                .Where(x => x.Name.ToLower() == normalizedName)
+                .ToListAsync(cancellationToken);
+        }
 
-        public async Task<List<Movie>> GetByNameAsync(string name, CancellationToken ct) => await _movies
-            .AsNoTracking()
-            .Where(x => x.Name.ToLower().Contains(name.ToLower()))
-            .ToListAsync(ct);
+        public async Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken) 
+        {
+            var normalizedName = name.ToLower();
 
-        public void Delete(Movie movie) => _movies.Remove(movie);
+            return await _movies.AnyAsync(x => x.Name.ToLower() == normalizedName, cancellationToken);
+        }
 
-        public async Task<Result<bool>> SaveChangesAsync(CancellationToken ct)
+        public void Delete(Movie movie) 
+        {
+            SetRowVersionToCompare(movie, movie.RowVersion);
+            _movies.Remove(movie); 
+        }
+
+        public void SetRowVersionToCompare(
+            Movie movie,
+            byte[] expectedRowVersion)
+        {
+            context.Entry(movie)
+                .Property(x => x.RowVersion)
+                .OriginalValue = expectedRowVersion;
+        }
+
+        public async Task<Result<bool>> SaveChangesAsync(CancellationToken cancellationToken)
         {
             try
             {
-                await context.SaveChangesAsync(ct);
+                await context.SaveChangesAsync(cancellationToken);
                 return Result<bool>.Success(true);
+            }
+            catch(DbUpdateConcurrencyException)
+            {
+                throw new DBConcurrencyException("The model has been modified by another request");
             }
             catch (Exception)
             {
