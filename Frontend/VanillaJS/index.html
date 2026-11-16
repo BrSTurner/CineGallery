@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movies</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">CineGallery</a>
+        <div class="d-flex align-items-center">
+          <span class="navbar-text me-3" id="account-name" hidden></span>
+          <button class="btn btn-outline-light btn-sm" id="sign-in" type="button" hidden>Sign in</button>
+          <button class="btn btn-outline-light btn-sm" id="sign-out" type="button" hidden>Sign out</button>
+        </div>
+      </div>
+    </nav>
+    <main class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Movies</h1>
+        <a class="btn btn-primary" id="create-movie" href="create.html" hidden>Create movie</a>
+      </div>
+      <div id="status" class="alert alert-secondary" role="status" hidden>Loading movies…</div>
+      <div id="scope-notice" class="alert alert-warning" role="alert" hidden>
+        You are signed in, but this account does not have the Movies.Write scope.
+      </div>
+      <div id="empty" class="alert alert-info" role="alert" hidden>No movies yet.</div>
+      <div class="table-responsive" id="movie-table" hidden>
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col" class="text-end" id="actions-header" hidden>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="movie-rows"></tbody>
+        </table>
+      </div>
+    </main>
+    <script type="module" src="/src/pages/list.js"></script>
+  </body>
+</html>

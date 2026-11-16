@@ -4,6 +4,8 @@ using CineGallery.Application.Movies.UseCases.Delete;
 using CineGallery.Application.Movies.UseCases.GetAll;
 using CineGallery.Application.Movies.UseCases.GetById;
 using CineGallery.Application.Movies.UseCases.Update;
+using CineGallery.WebAPI.Auth;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace CineGallery.WebAPI.Endpoints.V1
@@ -30,6 +32,7 @@ namespace CineGallery.WebAPI.Endpoints.V1
             .WithTags("GetById")
             .WithName("Get by id")
             .WithDescription("Gets a Movie by its Id")
+            .AllowAnonymous()
             .Produces<MovieOutput>()
             .ProducesProblem((int)HttpStatusCode.BadRequest)
             .ProducesProblem((int)HttpStatusCode.NotFound);
@@ -41,6 +44,7 @@ namespace CineGallery.WebAPI.Endpoints.V1
             .WithTags("GetAll")
             .WithName("Get all")
             .WithDescription("Gets all Movies")
+            .AllowAnonymous()
             .Produces<List<MovieOutput>>();
 
             moviesGroup.MapPost(string.Empty, async (MovieInput input, CreateMovieUseCase useCase, CancellationToken ct) =>
@@ -57,7 +61,10 @@ namespace CineGallery.WebAPI.Endpoints.V1
             .WithTags("Create")
             .WithName("Create Movie")
             .WithDescription("Creates a new Movie")
+            .RequireAuthorization(AuthorizationPolicies.MoviesWrite)
             .Produces<MovieOutput>((int)HttpStatusCode.Created)
+            .Produces((int)HttpStatusCode.Unauthorized)
+            .Produces((int)HttpStatusCode.Forbidden)
             .ProducesProblem((int)HttpStatusCode.BadRequest)
             .ProducesProblem((int)HttpStatusCode.Conflict);
 
@@ -75,11 +82,14 @@ namespace CineGallery.WebAPI.Endpoints.V1
             .WithTags("Update")
             .WithName("Update Movie")
             .WithDescription("Updates an existent Movie")
+            .RequireAuthorization(AuthorizationPolicies.MoviesWrite)
             .Produces<MovieOutput>((int)HttpStatusCode.Accepted)
+            .Produces((int)HttpStatusCode.Unauthorized)
+            .Produces((int)HttpStatusCode.Forbidden)
             .ProducesProblem((int)HttpStatusCode.BadRequest)
             .ProducesProblem((int)HttpStatusCode.Conflict);
 
-            moviesGroup.MapDelete("/{id:Guid:required}/{rowVersion:required}", async (Guid id, string rowVersion, DeleteMovieUseCase useCase, CancellationToken ct) =>
+            moviesGroup.MapDelete("/{id:Guid:required}", async (Guid id, [FromQuery] string rowVersion, DeleteMovieUseCase useCase, CancellationToken ct) =>
             {
                 if (id == Guid.Empty)
                     return Results.BadRequest("Id cannot be null");
@@ -96,7 +106,10 @@ namespace CineGallery.WebAPI.Endpoints.V1
             .WithTags("Delete")
             .WithName("Delete Movie")
             .WithDescription("Deletes a Movie")
+            .RequireAuthorization(AuthorizationPolicies.MoviesWrite)
             .Produces((int)HttpStatusCode.NoContent)
+            .Produces((int)HttpStatusCode.Unauthorized)
+            .Produces((int)HttpStatusCode.Forbidden)
             .ProducesProblem((int)HttpStatusCode.BadRequest)
             .ProducesProblem((int)HttpStatusCode.Conflict);
 

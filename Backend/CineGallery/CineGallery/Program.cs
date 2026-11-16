@@ -16,8 +16,7 @@ builder.Services.AddApiVersioning(options =>
     options.ApiVersionReader = new UrlSegmentApiVersionReader();
 });
 
-//TODO: Implement Microsoft Entra OpenId + OAuth2.0
-
+builder.Services.AddCineAuthenticationAndAuthorization(builder.Configuration);
 builder.Services.AddHealthChecks();
 builder.Services.AddObservability();
 builder.Services.AddApplication();
@@ -34,6 +33,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
+app.UseCors("Spa");
+app.UseAuthentication();
+app.UseAuthorization();
 
 var versionedApi = app.NewVersionedApi("CineGallery");
 
